@@ -377,7 +377,7 @@ class SeriesUpdater(freevana.Freevana):
         """
         print "***** Start downloading subtitles... *****"
         try:
-            query = 'SELECT id, name FROM series_episodes WHERE subs=0'
+            query = 'SELECT id, short_name FROM series_episodes WHERE subs=0'
             episodes = self.run_query(query, as_list=True)
             for episode in episodes:
                 (episode_id, episode_name) = episode
