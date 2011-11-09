@@ -173,16 +173,19 @@ class MoviesUpdater(freevana.Freevana):
                 print "Sources for #%s %s" % (movie_id, movie_name)
                 data = self.browser.open(url)
                 sources = self.get_sources(BeautifulSoup(data.read()))
+                count = 0
                 for source in sources:
                     source_id = sources[source]
                     print "Source: %s, SourceId: %s" % (source, source_id)
                     link = self.get_download_link(source, source_id, url)
                     if (link):
                         self.save_source(movie_id, source, source_id, link)
+                        count = count + 1
                     else:
                         raise Exception("Couldn't get link for %s => %s" % (
                                                             movie_id, source))
-                self.mark_sources_as_downloaded(movie_id)
+                if (count > 0): # don't mark srcs as downloaded if we had none
+                    self.mark_sources_as_downloaded(movie_id)
         except Exception, ex:
             print "Coudln't download sources: %s" % ex
             raise ex # propagate exception
