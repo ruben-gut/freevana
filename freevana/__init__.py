@@ -2,7 +2,7 @@
 """
 Freevana main package
 """
-__author__ = "RDG"
+__author__ = "Tirino"
 
 # system
 import urllib

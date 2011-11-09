@@ -2,7 +2,7 @@
 """
 Asorted utility functions
 """
-__author__ = "RDG"
+__author__ = "Tirino"
 
 import re
 

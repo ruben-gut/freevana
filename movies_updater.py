@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+__author__ = "Tirino"
+
 from freevana import TemporaryErrorException
 from freevana.movies import MoviesUpdater
 

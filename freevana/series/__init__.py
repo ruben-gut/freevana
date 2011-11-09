@@ -2,7 +2,7 @@
 """
 Freevana Series
 """
-__author__ = "RDG"
+__author__ = "Tirino"
 
 # pylint: disable-msg=W0105
 
