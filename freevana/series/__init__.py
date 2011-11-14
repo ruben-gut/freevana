@@ -282,11 +282,16 @@ class SeriesUpdater(freevana.Freevana):
         Check if a series already exists in the DB
         """
         try:
-            query  = 'SELECT id FROM series_episodes '
-            query += 'WHERE season_id=? AND id=?'
-            result = self.run_query(query, (season_id, episode_id),
-                                                        as_list=True)
-            return (len(result) > 0)
+            query  = 'SELECT id, season_id FROM series_episodes WHERE id=?'
+            result = self.run_query(query, (episode_id,), as_list=True)
+            exists = (len(result) > 0)
+            if (exists):
+                (_id, seas_id) = result[0]
+                if (seas_id != season_id):
+                    print "WARNING: ****** Episode changed season!!! "
+                    print "WARNING: ****** Old Season: %s, New Season: %s" % (
+                                                        seas_id, season_id)
+            return exists
         except Exception, ex:
             print "Couldn't check if the episode exists: %s" % ex
             raise ex # propagate the exception
