@@ -128,7 +128,7 @@ class MoviesUpdater(freevana.Freevana):
         movie_id = get_item_id(link.url)
 
         if self._movie_exists(movie_id):
-            print ">> Movie already downloaded: %s" % link.text
+            print ">> Movie already in database: %s" % link.text
             return
         else:
             print "Adding movie: %s" % link.text
@@ -162,7 +162,7 @@ class MoviesUpdater(freevana.Freevana):
         Iterate the list of movies from the DB and get the
         sources of those that don't have them yet
         """
-        print "***** Start downloading sources... *****"
+        print "***** Start updating sources... *****"
         try:
             query = 'SELECT id, name FROM movies WHERE sources=0'
             movies = self.run_query(query, as_list=True)
@@ -187,7 +187,7 @@ class MoviesUpdater(freevana.Freevana):
                 if (count > 0): # don't mark srcs as downloaded if we had none
                     self.mark_sources_as_downloaded(movie_id)
         except Exception, ex:
-            print "Coudln't download sources: %s" % ex
+            print "Coudln't update sources: %s" % ex
             raise ex # propagate exception
 
     def get_sources(self, soup):
