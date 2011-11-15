@@ -4,6 +4,10 @@ Freevana main package
 """
 __author__ = "Tirino"
 
+"""
+CREATE TABLE database_version (id INTEGER PRIMARY KEY, version TEXT);
+"""
+
 # system
 import urllib
 import sqlite3
