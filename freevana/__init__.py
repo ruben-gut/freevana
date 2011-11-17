@@ -5,7 +5,7 @@ Freevana main package
 __author__ = "Tirino"
 
 """
-CREATE TABLE database_version (id INTEGER PRIMARY KEY, version TEXT);
+CREATE TABLE database_version (id INTEGER PRIMARY KEY, version TEXT, release_date TEXT);
 """
 
 # system
