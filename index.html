@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>tirino/freevana @ GitHub</title>
+  <title>Freevana &amp; Freevana Player @ GitHub</title>
   <style type="text/css">
     body {
       margin-top: 1.0em;
@@ -39,55 +39,150 @@
         vertical-align: middle;
     }
   </style>
+<script language="JavaScript" type="text/javascript">
+// Globals
+// Major version of Flash required
+var requiredMajorVersion = 9;
+// Minor version of Flash required
+var requiredMinorVersion = 0;
+// Minor version of Flash required
+var requiredRevision = 115;
+
+var browserLang = (navigator.language) ? navigator.language : navigator.userLanguage;
+var userLang = (browserLang.indexOf('es') == 0) ? 'es' : 'en';
+
+var spanish = {};
+spanish['description']  = 'Reproductor Gratuito de videos de Cuevana y base de datos offline';
+spanish['full_description']  = '<b>Freevana Player</b> funciona incluso cuando el sitio web de Cuevana no funciona.<br/>';
+spanish['full_description'] += 'El actualizador de base de datos permite mantener una copia al día de la base de datos de Cuevana, y de los subtítulos.'
+spanish['screenshot'] = '<img src="img/screenshot_es.png" width="701" height="412" alt="Freevana Player" border="0" />';
+
+spanish['instructions'] = 'Instrucciones';
+spanish['instructions_text']  = '<ul><li>Instalar Freevana Player y bajar la base de datos.</li>';
+spanish['instructions_text'] += '<li>Aunque no es 100% necesario, es recomendable bajar una copia de los subtitulos para que todo funcione incluso cuando no anda la página de subtitulos.</li>';
+spanish['instructions_text'] += '<li>Descomprima la base de datos y los subtítulos.</li><li>Ejecute Freevana Player, seleccione la base de datos y la carpeta de subtítulos. Listo!</li>';
+
+spanish['install'] = 'Instalar';
+spanish['install_text'] = 'Se puede instalar Freevana Player directo desde el navegador:';
+spanish['install_text2'] = 'O, se puede descargar el archivo .AIR y ejecutarlo con Adobe AIR:';
+spanish['air_link'] = '<a href="http://www.adobe.com/es/products/air.html" target="_blank">Adobe AIR</a>';
+spanish['database'] = 'Base de Datos';
+spanish['optional'] = 'Opcional';
+spanish['subtitles'] = 'Subtítulos';
+spanish['subtitles_text']  = 'Para una mejor experiencia, es recomendable tener una copia local de los subtítulos. ';
+spanish['subtitles_text'] += 'De no ser así, Freevana Player intentará descargarlos cada vez que se reproduzca una nueva Película o Serie, ';
+spanish['subtitles_text'] += 'sin embargo, tener una copia local es la opción más segura.';
+spanish['subtitles_links'] = '<a href="http://www.fileserve.com/file/DVkt2yd/subtitles-ES-2011-11-18.zip" target="_blank">Español solo</a> 291MB\n';
+spanish['subtitles_links'] += '<a href="http://www.mediafire.com/?jas66xlp5von67n" target="_blank">Inglés solo</a> 45MB\n';
+spanish['subtitles_links'] += '<a href="http://www.mediafire.com/?9s31aw6syxpuy82" target="_blank">Portugués solo</a> 1.9MB\n\n';
+spanish['subtitles_links'] += '<a href="http://www.fileserve.com/file/hzczDD8/subtitles-2011-11-18.zip" target="_blank">Todos los idiomas</a> 338MB';
+spanish['author'] = 'Autor';
+
+function init() {
+	if (userLang == 'es') {
+		for (var key in spanish) {
+			var item = document.getElementById(key);
+			if (item) {
+				item.innerHTML = spanish[key];
+			}
+		}
+	}
+}
+</script>
+<script src="AC_RunActiveContent.js" type="text/javascript"></script>
 </head>
+<body onload="init();">
 
-<body>
-  <a href="https://github.com/tirino/freevana"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+<div id="container">
+	
+	<h1><a href="https://github.com/tirino/freevana">Freevana</a></h1>
 
-  <div id="container">
+	<div class="description" id="description">
+		Free Video Player for Cuevana and offline database grabber
+	</div>
 
-    <div class="download">
-      <a href="https://github.com/tirino/freevana/zipball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/zip.png"></a>
-      <a href="https://github.com/tirino/freevana/tarball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/tar.png"></a>
+	<p id="full_description">
+		<b>Freevana Player</b> works even when Cuevana's website is down.<br/>
+		Freevana's database grabber lets you keep an up-to-date version of Cuevana's database and their subtitles.
+	</p>
+	<p>100% Open Source</p>
+
+	<p id="screenshot">
+		<img src="img/screenshot.png" width="701" height="412" alt="Freevana Player" border="0" />
+	</p>
+
+	<h2 id="instructions">Instructions</h2>
+	<p id="instructions_text">
+		<ul>
+			<li>Install Freevana Player and download the database.</li>
+			<li>Though, it's not 100% required, you should also download a copy of the subtitles so that movies and series work even if the subtitles page is down.</li>
+			<li>Uncompress the database and subtitles.</li>
+			<li>Run Freevana Player, select the database and the subtitles folder. Done!</li>
+		</ul>
+	</p>
+
+	<h2 id="install">Install</h2>
+	<p id="install_text">
+		You can install Freevana Player directly from your web browser:
+	</p>
+	<object type="application/x-shockwave-flash" data="AIRInstallBadge.swf"
+	 width="260" height="180" id="install" style="visibility: visible; ">
+		<param name="wmode" value="transparent">
+		<param name="flashvars" value="image=img/badge.png&amp;airversion=2.6&amp;appname=Freevana Player&amp;appurl=https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air&amp;appversion=1.0&amp;str_install=Install Freevana&amp;badgeTxt_via=via&amp;badgeTxt_version=version&amp;badgeTxt_download=Download now&amp;badgeTxt_installing=Installing Freevana Player&amp;badgeTxt_adobeAir=In order to run Freevana Player, this installer will also setup Adobe® AIR™.&amp;badgeTxt_noAir=Unfortunately Adobe® AIR™ is not available for your system.">
+	</object>
+	<p id="install_text2">
+		Or, you can download the .AIR file and run it yourself, with Adobe AIR:
+		<pre><a href="https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air">Freevana Player</a> 1.4MB (Windows, Linux, Mac)</pre>
+		<pre id="air_link"><a href="http://www.adobe.com/products/air.html" target="_blank">Adobe AIR</a></pre>
+	</p>
+
+	<h2 id="database">Database</h2>
+	<p>
+		<pre><a href="http://bitshare.com/files/co4paqhs/freevana.db.zip.html" target="_blank">Freevana Database</a> 800k (2011-11-17)</pre>
+	</p>
+
+	<h2 id="subtitles">Subtitles</h2>
+	<p id="subtitles_text">
+		For a better experience, it's recommended you download a copy of the subtitles to your computer. 
+		If you don't have them, Freevana Player will still attempt to download the subtitles when you view a new Movie or Series, 
+		but having a local copy it's the safest option.
+	</p>
+	<p>
+		<pre id="subtitles_links"><a href="http://www.mediafire.com/?jas66xlp5von67n" target="_blank" target="_blank">English only</a> 45MB
+<a href="http://www.fileserve.com/file/DVkt2yd/subtitles-ES-2011-11-18.zip" target="_blank">Spanish only</a> 291MB
+<a href="http://www.mediafire.com/?9s31aw6syxpuy82" target="_blank">Portuguese only</a> 1.9MB
+
+<a href="http://www.fileserve.com/file/hzczDD8/subtitles-2011-11-18.zip" target="_blank">All Languages</a> 338MB</pre>
+	</p>
+
+	<p>&nbsp; <br />&nbsp; <br /></p>
+
+	<h2 id="optional">Optional</h2>
+	<p>
+		Freevana Database Updater (Python [mechanize, BeautifulSoup])
+		<a href="https://github.com/tirino/freevana/zipball/master">zip</a> | 
+		<a href="https://github.com/tirino/freevana/tarball/master">tar</a>
+	</p>
+
+	<h2 id="author">Author</h2>
+	<p>
+		<pre><img src="http://www.gravatar.com/avatar/1ff8c12d6042b2ee2f9151adbff0deb5?s=50" width="50" height="50" alt="Tirino" /> tirino (<a href="mailto:tirino.wok@gmail.com">tirino.wok@gmail.com</a>)</pre>
+	</p>
+
+	<p>&nbsp; <br />&nbsp; <br /></p>
+
+	<p id="clone">You can also clone these projects with <a href="http://git-scm.com">Git</a> by running:
+		<pre>$ git clone git://github.com/tirino/freevana-player</pre>
+		<pre>$ git clone git://github.com/tirino/freevana</pre>
+	</p>
+
+	<div class="footer">
+		get the source code on GitHub:
+		<a href="https://github.com/tirino/freevana-player">tirino/freevana-player</a> |
+		<a href="https://github.com/tirino/freevana">tirino/freevana</a>
     </div>
 
-    <h1><a href="https://github.com/tirino/freevana">Freevana</a></h1>
-
-    <div class="description">
-      Free Python database grabber and updater for Cuevana
-    </div>
-
-      <p>Download and maintain a local copy of Cuevana's movies and series complete with download links.</p>
-
-    
-      <h2>Python Dependencies</h2>
-      <p>mechanize<br/>
-		BeautifulSoup</p>
-
-      <h2>Authors</h2>
-
-      <p>
-          <pre><img src="http://www.gravatar.com/avatar/1ff8c12d6042b2ee2f9151adbff0deb5?s=50" width="50" height="50" alt="Tirino" /> tirino (<a href="mailto:tirino.wok@gmail.com">tirino.wok@gmail.com</a>)</pre>
-      </p>
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="https://github.com/tirino/freevana/zipball/master">zip</a> or
-      <a href="https://github.com/tirino/freevana/tarball/master">tar formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/tirino/freevana</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="https://github.com/tirino/freevana">tirino/freevana</a>
-    </div>
-
-  </div>
+</div>
 
 </body>
 </html>
