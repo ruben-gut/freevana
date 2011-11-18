@@ -132,7 +132,7 @@ function init() {
 		This is the content that would be shown if the user does not have Flash Player 6.0.65 or higher installed.
 	</div>
 
-	<script type="text/javascript">
+	<script type="text/javascript" defer="defer">
 		// <![CDATA[
 		// version 9.0.115 or greater is required for launching AIR apps.
 		var so = new SWFObject("AIRInstallBadge.swf", "Badge", "215", "180", "9.0.115", "#FFFFFF");
@@ -140,7 +140,7 @@ function init() {
 		// these parameters are required for badge install:
 		so.addVariable("airversion", "2.6"); // version of AIR runtime required
 		so.addVariable("appname", "Freevana Player"); // application name to display to the user
-		so.addVariable("appurl", "https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air"); // absolute URL (beginning with http or https) of the application ".air" file
+		so.addVariable("appurl", "http://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air"); // absolute URL (beginning with http or https) of the application ".air" file
 
 		so.addVariable("appid", "freevana.freevanaPlayer"); // the qualified application ID (ex. com.gskinner.air.MyApplication)
 		so.addVariable("pubid", ""); // publisher id
