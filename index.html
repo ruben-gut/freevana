@@ -39,6 +39,7 @@
         vertical-align: middle;
     }
   </style>
+<script type="text/javascript" src="swfobject.js"></script>
 <script language="JavaScript" type="text/javascript">
 // Globals
 // Major version of Flash required
@@ -64,7 +65,7 @@ spanish['instructions_text'] += '<li>Descomprima la base de datos y los subtítu
 
 spanish['install'] = 'Instalar';
 spanish['install_text'] = 'Se puede instalar Freevana Player directo desde el navegador:';
-spanish['install_text2'] = 'O, se puede descargar el archivo .AIR y ejecutarlo con Adobe AIR:';
+spanish['install_text2'] = 'O, se puede descargar el archivo <b>.air</b> y ejecutarlo con Adobe AIR:';
 spanish['air_link'] = '<a href="http://www.adobe.com/es/products/air.html" target="_blank">Adobe AIR</a>';
 spanish['database'] = 'Base de Datos';
 spanish['optional'] = 'Opcional';
@@ -125,13 +126,45 @@ function init() {
 	<p id="install_text">
 		You can install Freevana Player directly from your web browser:
 	</p>
-	<object type="application/x-shockwave-flash" data="AIRInstallBadge.swf"
-	 width="260" height="180" id="install" style="visibility: visible; ">
-		<param name="wmode" value="transparent">
-		<param name="flashvars" value="image=img/badge.png&amp;airversion=2.6&amp;appname=Freevana Player&amp;appurl=https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air&amp;appversion=1.0&amp;str_install=Install Freevana&amp;badgeTxt_via=via&amp;badgeTxt_version=version&amp;badgeTxt_download=Download now&amp;badgeTxt_installing=Installing Freevana Player&amp;badgeTxt_adobeAir=In order to run Freevana Player, this installer will also setup Adobe® AIR™.&amp;badgeTxt_noAir=Unfortunately Adobe® AIR™ is not available for your system.">
-	</object>
+	
+	<div id="flashcontent" style="width:215px; height:180px;">
+		<strong>Please upgrade your Flash Player</strong>
+		This is the content that would be shown if the user does not have Flash Player 6.0.65 or higher installed.
+	</div>
+
+	<script type="text/javascript">
+		// <![CDATA[
+		// version 9.0.115 or greater is required for launching AIR apps.
+		var so = new SWFObject("AIRInstallBadge.swf", "Badge", "215", "180", "9.0.115", "#FFFFFF");
+
+		// these parameters are required for badge install:
+		so.addVariable("airversion", "2.6"); // version of AIR runtime required
+		so.addVariable("appname", "Freevana Player"); // application name to display to the user
+		so.addVariable("appurl", "https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air"); // absolute URL (beginning with http or https) of the application ".air" file
+
+		so.addVariable("appid", "freevana.freevanaPlayer"); // the qualified application ID (ex. com.gskinner.air.MyApplication)
+		so.addVariable("pubid", ""); // publisher id
+
+		// this parameter is required in addition to the above to support upgrading from the badge:
+		so.addVariable("appversion", "1.0"); // AIR application version
+
+		// these parameters are optional:
+		so.addVariable("image", "img/badge.png"); // URL for an image (JPG, PNG, GIF) or SWF to display in the badge (205px wide, 170px high)
+		so.addVariable("hidehelp", "false"); // hides the help icon if "true"
+		so.addVariable("skiptransition", "false"); // skips the initial transition if "true"
+		so.addVariable("titlecolor", "#00AAFF"); // changes the color of titles
+		so.addVariable("buttonlabelcolor", "#00AAFF"); // changes the color of the button label
+		so.addVariable("appnamecolor", "#00AAFF"); // changes the color of the application name if the image is not specified or loaded
+
+		// these parameters allow you to override the default text in the badge:
+		// supported strings: str_error, str_err_params, str_err_airunavailable, str_err_airswf, str_loading, str_install, str_launch, str_upgrade, str_close, str_launching, str_launchingtext, str_installing, str_installingtext, str_tryagain, str_beta3, str_beta3text, str_help, str_helptext
+		so.addVariable("str_install", "Install Freevana"); // overrides the error text when the AIR proxy swf fails to load
+		so.write("flashcontent");
+		// ]]>
+	</script>
+
 	<p id="install_text2">
-		Or, you can download the .AIR file and run it yourself, with Adobe AIR:
+		Or, you can download the <b>.air</b> file and run it yourself, with Adobe AIR:
 		<pre><a href="https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.0.air">Freevana Player</a> 1.4MB (Windows, Linux, Mac)</pre>
 		<pre id="air_link"><a href="http://www.adobe.com/products/air.html" target="_blank">Adobe AIR</a></pre>
 	</p>
