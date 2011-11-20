@@ -60,15 +60,6 @@ DB_FILE_LOCATION = './db/freevana.db'
 MEDIA_DATA_HOST = 'http://www.cuevana.tv'
 SUBTITLES_LANGUAGES = ['ES', 'EN', 'PT']
 
-MEDIA_MOVIES_PATH = '/peliculas/lista/'
-MEDIA_MOVIES_PATTERN = r'\/peliculas\/[0-9]'
-
-SUBTITLES_MOVIES_LOCATION = './subtitles/movies'
-SUBTITLES_MOVIES_URL_PATTERN = 'http://sc.cuevana.tv/files/sub/%s_%s.srt'
-
-SUBTITLES_SERIES_LOCATION = './subtitles/series'
-SUBTITLES_SERIES_URL_PATTERN = 'http://sc.cuevana.tv/files/sub/%s_%s.srt'
-
 class Freevana(object):
     """
     Handle connecting to the remote media server and doing
