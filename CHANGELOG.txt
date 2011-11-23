@@ -1,0 +1,13 @@
+Freevana Player 1.1
+-------------------
+Fixes/Changes
+- Made subtitles opaque instead of translucid
+- Added option to select subtitles size
+- Added option to show download link and subtitles
+- Added support for automatically checking for updates
+- Fixed bug in videos without subtitles
+- Fixed bug where DB and subtitles buttons would be binded twice.
+
+Freevana Player 1.0
+-------------------
+Initial Release
