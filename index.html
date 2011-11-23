@@ -53,9 +53,9 @@ var browserLang = (navigator.language) ? navigator.language : navigator.userLang
 var userLang = (browserLang.indexOf('en') == 0) ? 'en' : 'es';
 
 var english = {};
-english['description']  = 'Free Video Player for Cuevana and offline database grabber';
+english['description']  = 'Free Video Player for Cuevana. Optional offline database updater.';
 english['full_description']  = '<b>Freevana Player</b> works even when Cuevana\'s website is down.<br/>';
-english['full_description'] += 'Freevana\'s database grabber lets you keep an up-to-date version of Cuevana\'s database and their subtitles.'
+english['full_description'] += 'The optional database grabber lets you keep an up-to-date version of Cuevana\'s database and their subtitles.'
 english['screenshot'] = '<img src="img/screenshot.png" width="701" height="412" alt="Freevana Player" border="0" />';
 
 english['instructions'] = 'Instructions';
@@ -115,7 +115,7 @@ http://www.fileserve.com/file/gT3vhMA/subtitles-2011-11-23.zip
 
 	<p id="full_description">
 		<b>Freevana Player</b> funciona incluso cuando el sitio web de Cuevana no funciona.<br/>
-		El actualizador de base de datos permite mantener una copia al día de la base de datos de Cuevana, y de los subtítulos.
+		El actualizador (opcional) de base de datos permite mantener una copia al día de la base de datos de Cuevana, y de los subtítulos.
 	</p>
 	<p>100% Open Source</p>
 
@@ -160,7 +160,7 @@ http://www.fileserve.com/file/gT3vhMA/subtitles-2011-11-23.zip
 		so.addVariable("pubid", ""); // publisher id
 
 		// this parameter is required in addition to the above to support upgrading from the badge:
-		so.addVariable("appversion", "1.0"); // AIR application version
+		so.addVariable("appversion", "1.1"); // AIR application version
 
 		// these parameters are optional:
 		so.addVariable("image", "img/badge.png"); // URL for an image (JPG, PNG, GIF) or SWF to display in the badge (205px wide, 170px high)
