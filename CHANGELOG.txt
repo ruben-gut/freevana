@@ -7,6 +7,8 @@ Fixes/Changes
 - Added support for automatically checking for updates
 - Fixed bug in videos without subtitles
 - Fixed bug where DB and subtitles buttons would be binded twice.
+- Added temporary workaround for "Subtitles button in the middle
+  of the screen" in Linux.
 
 Freevana Player 1.0
 -------------------
