@@ -12,7 +12,8 @@ CREATE TABLE movies (id INTEGER PRIMARY KEY, name TEXT, alt_name TEXT,
 url TEXT, subs INTEGER, sources INTEGER);
 
 CREATE TABLE movie_sources (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-movie_id INTEGER, source TEXT, source_id TEXT, url TEXT);
+movie_id INTEGER, source TEXT, definition TEXT, audio TEXT, url TEXT);
+
 """
 
 # Not used for now:
@@ -21,8 +22,11 @@ movie_id INTEGER, source TEXT, source_id TEXT, url TEXT);
 # director TEXT, year INTEGER, category TEXT, lang TEXT);
 
 # system
+import os
 import re
 import sys
+import json
+import time
 # third party
 import mechanize
 from BeautifulSoup import BeautifulSoup
@@ -30,18 +34,13 @@ from BeautifulSoup import BeautifulSoup
 import freevana
 from freevana.utils import get_item_id, titlecase, remove_bom
 
-MEDIA_LIST_URL = 'http://www.cuevana.tv/peliculas/lista/'
-MEDIA_PATTERN = r'\/peliculas\/[0-9]'
+MEDIA_LIST_URL = 'http://www.cuevana.tv/web/peliculas?&todas'
+MEDIA_PATTERN = '\$\(\'#list\'\)\.list\(\{l:\[(.*)\], page'
 
-MEDIA_SOURCES_URL_PATTERN = '%s%s' % ('http://www.cuevana.tv/player/source',
-                                    '?id=%s&subs=,ES&onstart=yes&sub_pre=ES')
-MEDIA_SOURCE_URL = 'http://www.cuevana.tv/player/source_get'
-MEDIA_SOURCE_PATTERN = "goSource\('([A-Za-z0-9_]*)','([A-Za-z0-9_]*)'\)"
-
+MEDIA_SOURCES_URL_PATTERN = '%s%s' % ('http://www.cuevana.tv/player/sources',
+                                                    '?id=%s&tipo=pelicula')
 SUBTITLES_LOCATION = './subtitles/movies'
 SUBTITLES_URL_PATTERN = 'http://sc.cuevana.tv/files/sub/%s_%s.srt'
-
-SKIP_IMG_TEXT = '[IMG]'
 
 # pylint: disable-msg=W0703
 class MoviesUpdater(freevana.Freevana):
@@ -53,6 +52,7 @@ class MoviesUpdater(freevana.Freevana):
         self.current_page = 1
         self.last_page = 0
         self.finished_listing_movies = False
+        self.no_sources_movies = []
 
     def update_movie_list(self):
         """
@@ -65,83 +65,43 @@ class MoviesUpdater(freevana.Freevana):
             print "All movie pages already processed... skipping..."
             return
 
-        # Get the current last page if not already set
-        if (self.last_page == 0):
-            self.last_page = self.get_last_page()
+        # Obtain list of movies
+        data = self.browser.open(MEDIA_LIST_URL)
+        soup = BeautifulSoup(data.read())
+        script_data = soup.find('script')
 
-        if (self.last_page == 0):
-            raise Exception("Couldn't obtain a valid 'last page'!")
-        else:
-            print "Last Page is: %s" % self.last_page
+        all_movies = []
+        match = re.search(MEDIA_PATTERN, str(script_data))
+        if (match):
+            series_json = '[%s]' % match.group(1)
+            all_movies = json.loads(series_json)
 
-        # Iterate movie pages
-        try:
-            url = None
-            for this_page in xrange(self.current_page, self.last_page + 1):
-                self.current_page = this_page
-                print "Processing Page #%s" % this_page
-                url = "%spage=%s" % (MEDIA_LIST_URL, this_page)
-                self.browser.open(url)
-                for link in self.browser.links(url_regex=MEDIA_PATTERN):
-                    if (link.text != SKIP_IMG_TEXT): # skip img links
-                        self.add_movie(link)
-                if (self.current_page == self.last_page):
-                    self.finished_listing_movies = True
-        except Exception, ex:
-            new_ex = freevana.parse_exception(ex, url)
-            if (isinstance(new_ex, freevana.FileNotFoundException)):
-                # this one is ok to happen, we guess (for now)
-                print new_ex
-            else:
-                raise new_ex # propagate the exception
+        for movie in all_movies:
+            print "Adding Movie ID %s, Name: %s" % (movie['id'],
+                                                movie['tit'])
+            self.add_movie(movie)
 
-    def get_last_page(self):
+        self.finished_listing_movies = True
+
+    def add_movie(self, movie):
         """
-        Get the current last page of movies
+        Given a movie data, add it to the database
         """
-        last_page = 0
-        try:
-            self.browser.open(MEDIA_LIST_URL)
-            # find all links with urls containing 'page='
-            for link in self.browser.links(url_regex=r'page='):
-                if link.text != '':
-                    try:
-                        page = int(link.text)
-                        if page > last_page:
-                            last_page = page
-                    except Exception, ex:
-                        print "Couldn't parse text: %s, Exception: %s" % (
-                                                                link.text, ex)
-        except Exception, ex:
-            new_ex = freevana.parse_exception(ex, MEDIA_LIST_URL)
-            if (isinstance(new_ex, freevana.FileNotFoundException)):
-                # this one is ok to happen, we guess (for now)
-                print new_ex
-            else:
-                raise new_ex # propagate the exception
-        return last_page
-
-    def add_movie(self, link):
-        """
-        Given a movie Link object, add it to the database
-        """
-        movie_id = get_item_id(link.url)
-
-        if self._movie_exists(movie_id):
-            print ">> Movie already in database: %s" % link.text
+        if self._movie_exists(movie['id']):
+            print ">> Movie already in database: %s" % movie['tit']
             return
         else:
-            print "Adding movie: %s" % link.text
+            print "Adding movie: %s" % movie['tit']
 
-        alt_name = get_movie_name(link.url)
-        data = (movie_id, link.text, alt_name, link.url, 0, 0)
-        query  = 'INSERT INTO movies (id, name, alt_name, url, subs, sources) '
-        query += 'VALUES (?, ?, ?, ?, ?, ?)'
+        data = (movie['id'], movie['tit'].strip(), movie['tit'].strip(),
+                movie['url'], 0, 0)
+        query  = 'INSERT INTO movies (id, name, alt_name, url, subs, sources)'
+        query += ' VALUES (?, ?, ?, ?, ?, ?)'
         try:
             self.execute_query(query, data)
         except Exception, ex:
-            print "Could not add movie #%s, %s, because: %s" % (movie_id,
-                                                            link.text, ex)
+            print "Could not add movie #%s, %s, because: %s" % (movie['id'],
+                                                    movie['tit'].strip(), ex)
             raise ex # propagate the exception
 
     def _movie_exists(self, movie_id):
@@ -164,61 +124,44 @@ class MoviesUpdater(freevana.Freevana):
         """
         print "***** Start updating sources... *****"
         try:
-            query = 'SELECT id, name FROM movies WHERE sources=0'
+            query = 'SELECT id, name FROM movies WHERE sources=0 ORDER BY id'
             movies = self.run_query(query, as_list=True)
 
+            print "NO SOURCES: %s" % self.no_sources_movies
             for movie in movies:
                 (movie_id, movie_name) = movie
-                url  = MEDIA_SOURCES_URL_PATTERN % movie_id
-                print "Sources for #%s %s" % (movie_id, movie_name)
-                data = self.browser.open(url)
-                sources = self.get_sources(BeautifulSoup(data.read()))
-                count = 0
-                for source in sources:
-                    source_id = sources[source]
-                    print "Source: %s, SourceId: %s" % (source, source_id)
-                    link = self.get_download_link(source, source_id, url)
-                    if (link):
-                        self.save_source(movie_id, source, source_id, link)
-                        count = count + 1
+                if (movie_id not in self.no_sources_movies):
+                    url  = MEDIA_SOURCES_URL_PATTERN % movie_id
+                    print "Sources for #%s %s" % (movie_id, movie_name)
+                    data = self.browser.open(url)
+                    source_data = self.get_sources(BeautifulSoup(data.read()))
+                    if (source_data):
+                        count = self.handle_sources(source_data, 'pelicula',
+                                            url, movie_id, self.save_source)
+                        # don't mark srcs as downloaded if we had none
+                        if (count > 0):
+                            self.mark_sources_as_downloaded(movie_id)
                     else:
-                        raise Exception("Couldn't get link for %s => %s" % (
-                                                            movie_id, source))
-                if (count > 0): # don't mark srcs as downloaded if we had none
-                    self.mark_sources_as_downloaded(movie_id)
+                        self.no_sources_movies.append(movie_id)
+
+                    time.sleep(freevana.REQUEST_SLEEP_TIME)
+                else:
+                    print "Movie had no sources: %s" % movie_name
         except Exception, ex:
             print "Coudln't update sources: %s" % ex
             raise ex # propagate exception
 
-    def get_sources(self, soup):
-        """
-        Get the available sources for a specific movie
-        """
-        sources = {}
-        for script in soup.findAll(name='script'):
-            match = re.search(MEDIA_SOURCE_PATTERN, str(script))
-            if match and match.group(2): # some sources may come without names!
-                sources[match.group(2)] = match.group(1)
-        return sources
-
-    def get_download_link(self, source, source_id, referrer):
-        """
-        Obtain the download link for the specified source
-        """
-        source_params = {'key': source_id, 'host': source, 'vars':''}
-        result = self.ajax_request(MEDIA_SOURCE_URL, source_params, referrer)
-        return remove_bom(result.strip())
-
-    def save_source(self, movie_id, source, source_id, url):
+    def save_source(self, movie_id, source, definition, audio, url):
         """
         Save source information into the DB.
         """
         try:
             query  = 'INSERT INTO movie_sources '
-            query += '(movie_id, source, source_id, url) VALUES (?, ?, ?, ?)'
-            data = (movie_id, source, source_id, url)
+            query += '(movie_id, source, definition, audio, url) VALUES '
+            query += '(?, ?, ?, ?, ?)'
+            data = (movie_id, source, definition, audio, url)
             self.execute_query(query, data)
-            print "Added source for MovieID: %s, Source: %s, Link: %s" % (
+            print "Added source for Movie ID: %s, Source: %s, Link: %s" % (
                                                         movie_id, source, url)
         except Exception, ex:
             print "Couldn't save the source: %s" % ex
@@ -247,13 +190,23 @@ class MoviesUpdater(freevana.Freevana):
             for movie in movies:
                 (movie_id, movie_name) = movie
                 for lang in freevana.SUBTITLES_LANGUAGES:
-                    print "Downloading subs for #%s - %s in %s" % (movie_id,
-                                                            movie_name, lang)
-                    self.download_subtitle(movie_id, lang)
+                    if (not self._subtitle_exists(movie_id, lang)):
+                        print "Downloading subs for #%s - %s in %s" % (
+                                                movie_id, movie_name, lang)
+                        self.download_subtitle(movie_id, lang)
+                        time.sleep(freevana.SUBTITLES_SLEEP_TIME)
                 self.mark_subs_as_downloaded(movie_id)
         except Exception, ex:
             print "Could not download subtitles: %s" % ex
             raise ex # propagate the exception
+
+    def _subtitle_exists(self, movie_id, lang):
+        """
+        Check if a subtitle already exists
+        """
+        filename = "%s/%s_%s.srt" % ( "%s/%s" % (SUBTITLES_LOCATION, lang),
+                                                        movie_id, lang)
+        return os.path.exists(filename)
 
     def download_subtitle(self, movie_id, lang):
         """

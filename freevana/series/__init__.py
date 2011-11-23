@@ -8,21 +8,26 @@ __author__ = "Tirino"
 
 # Series tables
 """
-CREATE TABLE series (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE series (id INTEGER PRIMARY KEY, name TEXT, url TEXT);
 
-CREATE TABLE series_seasons (id INTEGER PRIMARY KEY, 
+CREATE TABLE series_seasons (id INTEGER PRIMARY KEY AUTOINCREMENT, 
 series_id INTEGER, number INTEGER, name TEXT, finished INTEGER);
 
-CREATE TABLE series_episodes (id INTEGER PRIMARY KEY, season_id INTEGER, 
-number TEXT, short_name TEXT, name TEXT, subs INTEGER, sources INTEGER);
+CREATE TABLE series_episodes (id INTEGER PRIMARY KEY, 
+season_id INTEGER, number TEXT, short_name TEXT, name TEXT, 
+url TEXT, subs INTEGER, sources INTEGER);
 
 CREATE TABLE series_episode_sources (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-series_episode_id INTEGER, source TEXT, source_id TEXT, url TEXT);
+series_episode_id INTEGER, source TEXT, definition TEXT, audio TEXT, url TEXT);
 """
 
 # system
+import os
 import re
 import sys
+import json
+import time
+import urllib
 # third party
 import mechanize
 from BeautifulSoup import BeautifulSoup
@@ -30,19 +35,14 @@ from BeautifulSoup import BeautifulSoup
 import freevana
 from freevana.utils import get_item_id, titlecase, remove_bom
 
-MEDIA_LIST_URL = 'http://www.cuevana.tv/series/'
-MEDIA_PATTERN = r'\/series\/[0-9]'
+MEDIA_LIST_URL = 'http://www.cuevana.tv/web/series?&todas'
+MEDIA_PATTERN = '\$\(\'#list\'\)\.list\(\{l:\[(.*)\], page'
 
-SEASONS_URL_PATTERN = 'http://www.cuevana.tv/list_search_id.php?serie=%s'
+SEASONS_URL_PATTERN = 'http://www.cuevana.tv/web/series?&%s&'
+SEASONS_PATTERN = '\$\(\'#temporadas\'\)\.serieList\(\{l:(.*),e:'
 
-EPISODES_URL_PATTERN = 'http://www.cuevana.tv/list_search_id.php?temporada=%s'
-
-MEDIA_SOURCES_URL_PATTERN = '%s%s' % ('http://www.cuevana.tv/player/source',
-                            '?id=%s&subs=,ES&onstart=yes&tipo=s&sub_pre=ES')
-
-MEDIA_SOURCE_URL = 'http://www.cuevana.tv/player/source_get'
-MEDIA_SOURCE_PATTERN = "goSource\('([A-Za-z0-9_]*)','([A-Za-z0-9_]*)'\)"
-
+MEDIA_SOURCES_URL_PATTERN = '%s%s' % ('http://www.cuevana.tv/player/sources',
+                                                        '?id=%s&tipo=serie')
 SUBTITLES_LOCATION = './subtitles/series'
 SUBTITLES_URL_PATTERN = 'http://sc.cuevana.tv/files/s/sub/%s_%s.srt'
 
@@ -58,6 +58,8 @@ class SeriesUpdater(freevana.Freevana):
         self.finished_listing_series = False
         self.finished_listing_seasons = False
         self.finished_listing_episodes = False
+        self.processed_series = []
+        self.no_sources_episodes = []
 
     def update_series_list(self):
         """
@@ -72,20 +74,17 @@ class SeriesUpdater(freevana.Freevana):
         # Obtain list of series
         data = self.browser.open(MEDIA_LIST_URL)
         soup = BeautifulSoup(data.read())
-        series_ul = soup.find('ul', attrs={'id':'serie'})
-        all_series = series_ul.findAll('script')
+        script_data = soup.find('script')
+
+        all_series = []
+        match = re.search(MEDIA_PATTERN, str(script_data))
+        if (match):
+            series_json = '[%s]' % match.group(1)
+            all_series = json.loads(series_json)
 
         for series in all_series:
-            # Remove un wanted parts
-            series = str(series).replace('<script type="text/javascript">',
-                                                '').replace('</script>', '')
-            series = series.replace('serieslist.push(', '').replace(');', 
-                                                                '').strip()
-            series = series.replace('{id', '{"id"').replace(',nombre',
-                                                            ',"name"')
-            series = eval(series)
             print "Adding Series ID %s, Name: %s" % (series['id'],
-                                                    series['name'])
+                                                series['tit'])
             self.add_series(series)
 
         self.finished_listing_series = True
@@ -95,16 +94,16 @@ class SeriesUpdater(freevana.Freevana):
         Given a series data, add it to the database
         """
         if self._series_exists(series['id']):
-            print ">> Series already added: %s" % series['name']
+            print ">> Series already added: %s" % series['tit']
             return
 
-        data = (series['id'], series['name'])
-        query  = 'INSERT INTO series (id, name) VALUES (?, ?)'
+        data = (series['id'], series['tit'].strip(), series['url'])
+        query  = 'INSERT INTO series (id, name, url) VALUES (?, ?, ?)'
         try:
             self.execute_query(query, data)
         except Exception, ex:
             print "Could not add #%s, %s, because: %s" % (series['id'],
-                                                        series['name'], ex)
+                                                        series['tit'], ex)
             raise ex # propagate the exception
 
     def _series_exists(self, series_id):
@@ -128,108 +127,95 @@ class SeriesUpdater(freevana.Freevana):
             return
 
         print "***** Start updating seasons... *****"
-        try:
-            query = 'SELECT id, name FROM series'
-            all_series = self.run_query(query, as_list=True)
-            for series in all_series:
-                (series_id, series_name) = series
+        query = 'SELECT id, name FROM series'
+        all_series = self.run_query(query, as_list=True)
+        print "ALREADY PROCESSED: %s" % self.processed_series
+        for series in all_series:
+            (series_id, series_name) = series
+            if (series_id not in self.processed_series):
                 url = SEASONS_URL_PATTERN % series_id
-                print "Seasons for #%s %s" % (series_id, series_name)
+                try:
+                    print "\nSeasons for #%s %s" % (series_id, series_name)
+                    data = self.browser.open(url)
+                    soup = BeautifulSoup(data.read())
+                    script_data = soup.find('script')
+                    match = re.search(SEASONS_PATTERN, str(script_data))
+                    seasons_json = '%s' % match.group(1)
+                    seasons = json.loads(seasons_json)
+                    self.add_seasons(series_id, seasons)
+                    self.processed_series.append(series_id)
+                except Exception, ex:
+                    print "Could not download season: %s" % ex
+                    raise ex # propagate the exception
+            else:
+                print "Series already processed: %s" % series_name
 
-                data = self.browser.open(url)
-                soup = BeautifulSoup(data.read())
-                seasons = soup.findAll('li')
-                self.add_seasons(series_id, seasons)
-
-            self.finished_listing_seasons = True
-        except Exception, ex:
-            print "Could not download season: %s" % ex
-            raise ex # propagate the exception
+        self.finished_listing_seasons = True
 
     def add_seasons(self, series_id, seasons):
         """
         Given a list of seasons, add each of them to the DB
         """
         try:
-            number = 1
-            for season in seasons:
-                content = str(season)
-                match = re.search('\"[0-9].*\"', content)
-                season_id = int(match.group(0).replace('"', ''))
-                match = re.search('>[A-Za-z0-9].*<', content)
-                season_name = match.group(0).replace('>', 
-                                                '').replace('<','')
-                print "Adding Season ID %s, Name: %s" % (season_id, 
-                                                        season_name)
-                self.add_season(series_id, season_id, number,
-                                                    season_name)
-                number = number + 1
+            if (isinstance(seasons, (dict))):
+                for number in seasons.keys(): 
+                    print "Adding Season # %s" % number
+                    self.add_season(series_id, number, seasons[number])
+            else:
+                print "*** Seasons object is not dict, must be empty: %s" % (
+                                                                    seasons)
         except Exception, ex:
-            print "Could not add seasons: %s" % ex
+            print "Could not add seasons.\n%s: %s" % (ex, seasons)
             raise ex # propagate the exception
 
-    def add_season(self, series_id, season_id, number, season_name):
+    def add_season(self, series_id, number, episodes):
         """
         Add a season to the DB
         """
-        if self._season_exists(series_id, season_id):
-            print ">> Season already added: %s" % season_name
-            return
-
-        data = (season_id, series_id, number, season_name, 0)
-        query  = 'INSERT INTO series_seasons '
-        query += '(id, series_id, number, name, finished)'
-        query += 'VALUES (?, ?, ?, ?, ?)'
-        try:
-            self.execute_query(query, data)
-        except Exception, ex:
-            print "Could not add season #%s, %s, because: %s" % (season_id,
+        season_id = self._season_exists(series_id, number)
+        if season_id:
+            print ">> Season already added: %s with ID: %s" % (number,
+                                                               season_id)
+        else:
+            season_name = 'Temporada %s' % number
+            data = (series_id, number, season_name, 0)
+            query  = 'INSERT INTO series_seasons '
+            query += '(series_id, number, name, finished)'
+            query += 'VALUES (?, ?, ?, ?)'
+            try:
+                (_, season_id) = self.execute_query(query, data)
+            except Exception, ex:
+                print "Could not add season #%s, %s, because: %s" % (season_id,
                                                             season_name, ex)
-            raise ex # propagate the exception
+                raise ex # propagate the exception
 
-    def _season_exists(self, series_id, season_id):
+        # Add episodes
+        if (season_id):
+            print "Adding Episodes for Season Id %s" % season_id
+            try:
+                self.add_episodes(season_id, episodes)
+            except Exception, ex:
+                print "Could not add episodes for #%s, because: %s" % (
+                                                            season_id, ex)
+                raise ex # propagate the exception
+        else:
+            print "Something went wrong. No Season ID for: %s" % (number)
+
+    def _season_exists(self, series_id, number):
         """
-        Check if a series already exists in the DB
+        Check if a season already exists in the DB and if it does, return id
         """
+        result = False
         try:
             query  = 'SELECT id FROM series_seasons '
-            query += 'WHERE id=? AND series_id=? LIMIT 1'
-            result = self.run_query(query, (season_id, series_id),
-                                                        as_list=True)
-            return (len(result) > 0)
+            query += 'WHERE number=? AND series_id=? LIMIT 1'
+            rows = self.run_query(query, (number, series_id), as_list=True)
+            if (rows and len(rows) > 0):
+                result = rows[0][0]
         except Exception, ex:
             print "Couldn't check if the season exists: %s" % ex
             raise ex # propagate the exception
-
-    def update_episodes(self):
-        """
-        Update the list of seasons for all series
-        """
-        if (self.finished_listing_episodes):
-            print "All current episodes already processed... skipping..."
-            return
-
-        print "***** Start updating episodes... *****"
-        try:
-            query  = 'SELECT DISTINCT ss.id, ss.name, s.name as series_name '
-            query += 'FROM series_seasons ss '
-            query += 'INNER JOIN series s ON (ss.series_id=s.id) '
-            query += 'WHERE ss.finished=0 ORDER BY s.id ASC, ss.number ASC'
-            seasons = self.run_query(query, as_list=True)
-            for season in seasons:
-                (season_id, season_name, series_name) = season
-                url = EPISODES_URL_PATTERN % season_id
-                print "Episodes for %s => #%s %s" % (series_name, season_id,
-                                                                season_name)
-                data = self.browser.open(url)
-                soup = BeautifulSoup(data.read())
-                episodes = soup.findAll('li')
-                self.add_episodes(season_id, episodes)
-
-            self.finished_listing_episodes = True
-        except Exception, ex:
-            print "Could not download episode: %s" % ex
-            raise ex # propagate the exception
+        return result
 
     def add_episodes(self, season_id, episodes):
         """
@@ -237,28 +223,19 @@ class SeriesUpdater(freevana.Freevana):
         """
         try:
             for episode in episodes:
-                content = str(episode)
-                # Episode ID
-                match = re.search(r',\"[0-9].*\"\)', content)
-                episode_id = int(match.group(0).replace(',"', 
-                                                    '').replace('")', ''))
-                # Episode Number
-                match = re.search(r'nume\">[0-9].*<\/span', content)
-                number = match.group(0).replace('nume">', 
-                                        '').replace('</span', '').strip()
-                # Episode Name
-                match = re.search(r'span> [^<].*<', content)
-                episode_name = match.group(0).replace('span> ', 
-                                            '').replace('<','').strip()
+                episode_id = episode['id']
+                number = episode['num']
+                episode_name = episode['tit'].strip()
+                url = episode['url']
                 print "Adding Episode ID %s, Nbr: %s Name: %s" % (
                                         episode_id, number, episode_name)
-                self.add_episode(season_id, episode_id, number, 
-                                                    episode_name)
+                self.add_episode(season_id, episode_id, number, url, 
+                                                        episode_name)
         except Exception, ex:
             print "Could not add episodes: %s" % ex
             raise ex # propagate the exception
 
-    def add_episode(self, season_id, episode_id, number, episode_name):
+    def add_episode(self, season_id, episode_id, number, url, episode_name):
         """
         Add an episode to the DB
         """
@@ -266,10 +243,11 @@ class SeriesUpdater(freevana.Freevana):
             print ">> Episode already added: %s" % episode_name
             return
 
-        data = (episode_id, season_id, number, episode_name, '', 0, 0)
+        data = (episode_id, season_id, number, episode_name, 
+                episode_name, url, 0, 0)
         query  = 'INSERT INTO series_episodes '
-        query += '(id, season_id, number, short_name, name, subs, sources)'
-        query += 'VALUES (?, ?, ?, ?, ?, ?, ?)'
+        query += '(id, season_id, number, short_name, name, url, subs, '
+        query += 'sources) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         try:
             self.execute_query(query, data)
         except Exception, ex:
@@ -305,62 +283,44 @@ class SeriesUpdater(freevana.Freevana):
         print "***** Start downloading sources... *****"
         try:
             query  = 'SELECT id, short_name FROM series_episodes '
-            query += 'WHERE sources=0'
+            query += 'WHERE sources=0 ORDER BY id'
             episodes = self.run_query(query, as_list=True)
 
+            print "NO SOURCES: %s" % self.no_sources_episodes
             for episode in episodes:
                 (episode_id, episode_name) = episode
-                url  = MEDIA_SOURCES_URL_PATTERN % episode_id
-                print "Sources for #%s %s" % (episode_id, episode_name)
-                data = self.browser.open(url)
-                sources = self.get_sources(BeautifulSoup(data.read()))
-                count = 0
-                for source in sources:
-                    source_id = sources[source]
-                    print "Source: %s, SourceId: %s" % (source, source_id)
-                    link = self.get_download_link(source, source_id, url)
-                    if (link):
-                        self.save_source(episode_id, source, source_id, link)
-                        count = count + 1
+                if (episode_id not in self.no_sources_episodes):
+                    url  = MEDIA_SOURCES_URL_PATTERN % episode_id
+                    print "Sources for #%s %s" % (episode_id, episode_name)
+                    data = self.browser.open(url)
+                    source_data = self.get_sources(BeautifulSoup(data.read()))
+                    if (source_data):
+                        count = self.handle_sources(source_data, 'serie', url,
+                                                episode_id, self.save_source)
+                        # don't mark srcs as downloaded if we had none
+                        if (count > 0):
+                            self.mark_sources_as_downloaded(episode_id)
                     else:
-                        raise Exception("Couldn't get link for %s => %s" % (
-                                                        episode_id, source))
-                if (count > 0): # don't mark srcs as downloaded if we had none
-                    self.mark_sources_as_downloaded(episode_id)
+                        self.no_sources_episodes.append(episode_id)
+
+                    time.sleep(freevana.REQUEST_SLEEP_TIME)
+                else:
+                    print "Episode had no sources: %s" % episode_name
         except Exception, ex:
             print "Coudln't download sources: %s" % ex
             raise ex # propagate exception
 
-    def get_sources(self, soup):
-        """
-        Get the available sources for a specific movie
-        """
-        sources = {}
-        for script in soup.findAll(name='script'):
-            match = re.search(MEDIA_SOURCE_PATTERN, str(script))
-            if match and match.group(2): # some sources may come without names!
-                sources[match.group(2)] = match.group(1)
-        return sources
-
-    def get_download_link(self, source, source_id, referrer):
-        """
-        Obtain the download link for the specified source
-        """
-        source_params = {'key': source_id, 'host': source, 'vars':''}
-        result = self.ajax_request(MEDIA_SOURCE_URL, source_params, referrer)
-        return remove_bom(result.strip())
-
-    def save_source(self, episode_id, source, source_id, url):
+    def save_source(self, episode_id, source, definition, audio, url):
         """
         Save source information into the DB.
         """
         try:
             query  = 'INSERT INTO series_episode_sources '
-            query += '(series_episode_id, source, source_id, url) '
-            query += 'VALUES (?, ?, ?, ?)'
-            data = (episode_id, source, source_id, url)
+            query += '(series_episode_id, source, definition, audio, url) '
+            query += 'VALUES (?, ?, ?, ?, ?)'
+            data = (episode_id, source, definition, audio, url)
             self.execute_query(query, data)
-            print "Added source for EpisodeId: %s, Source: %s, Link: %s" % (
+            print "Added source for Episode ID: %s, Source: %s, Link: %s" % (
                                                     episode_id, source, url)
         except Exception, ex:
             print "Couldn't save the source: %s" % ex
@@ -390,13 +350,23 @@ class SeriesUpdater(freevana.Freevana):
             for episode in episodes:
                 (episode_id, episode_name) = episode
                 for lang in freevana.SUBTITLES_LANGUAGES:
-                    print "Downloading subs for #%s - %s in %s" % (episode_id,
-                                                        episode_name, lang)
-                    self.download_subtitle(episode_id, lang)
+                    if (not self._subtitle_exists(episode_id, lang)):
+                        print "Downloading subs for #%s - %s in %s" % (
+                                            episode_id, episode_name, lang)
+                        self.download_subtitle(episode_id, lang)
+                        time.sleep(freevana.SUBTITLES_SLEEP_TIME)
                 self.mark_subs_as_downloaded(episode_id)
         except Exception, ex:
             print "Could not download subtitles: %s" % ex
             raise ex # propagate the exception
+
+    def _subtitle_exists(self, episode_id, lang):
+        """
+        Check if a subtitle already exists
+        """
+        filename = "%s/%s_%s.srt" % ( "%s/%s" % (SUBTITLES_LOCATION, lang),
+                                                        episode_id, lang)
+        return os.path.exists(filename)
 
     def download_subtitle(self, episode_id, lang):
         """
