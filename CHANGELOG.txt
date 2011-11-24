@@ -1,3 +1,9 @@
+Freevana Player 1.1.1
+---------------------
+Fixes/Changes
+- Fixed bug in Windows that prevented the Database from being
+  updated.
+
 Freevana Player 1.1
 -------------------
 Fixes/Changes
