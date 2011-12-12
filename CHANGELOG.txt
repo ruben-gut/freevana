@@ -1,3 +1,20 @@
+Freevana Player 1.2.5
+---------------------
+Changes
+- Added support for Wupload
+
+Freevana Player 1.2.1
+---------------------
+Fixes/Changes
+- Adapted code to work with new Megaupload's design
+
+Freevana Player 1.2
+-------------------
+Fixes/Changes
+- Added new Video Player with better support for subtitles
+- Added option to go back to the main menu from the Video Player
+- Added option to select which Video Player to new (new one or old)
+
 Freevana Player 1.1.1
 ---------------------
 Fixes/Changes
