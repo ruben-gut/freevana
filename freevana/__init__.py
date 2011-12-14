@@ -230,7 +230,8 @@ class Freevana(object):
         source_params = {'id':item_id, 'def':definition, 'audio':audio, 
                          'host':source, 'tipo':kind}
         result = self.ajax_request(source_url, source_params, referer)
-        result = urllib.unquote(result).replace('play2?megaurl=', '')
+        result = urllib.unquote(result).replace('play?url=', '').replace(
+                                                    'play2?megaurl=', '')
         match = re.search('(.*)&id', result)
         if (match and match.group(1)):
             result = match.group(1)

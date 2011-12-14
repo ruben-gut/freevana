@@ -314,6 +314,9 @@ class SeriesUpdater(freevana.Freevana):
         """
         Save source information into the DB.
         """
+        if (self._source_exists(episode_id, source, url)):
+            print "Source already exists"
+            return
         try:
             query  = 'INSERT INTO series_episode_sources '
             query += '(series_episode_id, source, definition, audio, url) '
@@ -325,6 +328,24 @@ class SeriesUpdater(freevana.Freevana):
         except Exception, ex:
             print "Couldn't save the source: %s" % ex
             raise ex # propagate the exception
+
+    def _source_exists(self, episode_id, source, url):
+        """
+        Check if a source already exists in the DB
+        """
+        result = False
+        try:
+            query  = 'SELECT id FROM series_seasons WHERE '
+            query += 'series_episode_id=? AND source=? AND url=? LIMIT 1'
+            rows = self.run_query(query, (episode_id, source, url), 
+                                                        as_list=True)
+            if (rows and len(rows) > 0):
+                result = rows[0][0]
+        except Exception, ex:
+            print "Couldn't check if the source exists: %s" % ex
+            raise ex # propagate the exception
+        return result
+
 
     def mark_sources_as_downloaded(self, episode_id):
         """

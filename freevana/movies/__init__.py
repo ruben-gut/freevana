@@ -155,6 +155,10 @@ class MoviesUpdater(freevana.Freevana):
         """
         Save source information into the DB.
         """
+        if (self._source_exists(movie_id, source, url)):
+            print "Source already exists"
+            return
+
         try:
             query  = 'INSERT INTO movie_sources '
             query += '(movie_id, source, definition, audio, url) VALUES '
@@ -165,6 +169,20 @@ class MoviesUpdater(freevana.Freevana):
                                                         movie_id, source, url)
         except Exception, ex:
             print "Couldn't save the source: %s" % ex
+            raise ex # propagate the exception
+
+    def _source_exists(self, movie_id, source, url):
+        """
+        Check if a source already exists in the DB
+        """
+        try:
+            query  = 'SELECT id FROM movie_sources '
+            query += 'WHERE movie_id=? AND source=? AND url=? LIMIT 1'
+            result = self.run_query(query, (movie_id, source, url),
+                                                        as_list=True)
+            return (len(result) > 0)
+        except Exception, ex:
+            print "Couldn't check if the source exists: %s" % ex
             raise ex # propagate the exception
 
     def mark_sources_as_downloaded(self, movie_id):
