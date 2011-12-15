@@ -335,7 +335,7 @@ class SeriesUpdater(freevana.Freevana):
         """
         result = False
         try:
-            query  = 'SELECT id FROM series_seasons WHERE '
+            query  = 'SELECT id FROM series_episode_sources WHERE '
             query += 'series_episode_id=? AND source=? AND url=? LIMIT 1'
             rows = self.run_query(query, (episode_id, source, url), 
                                                         as_list=True)
