@@ -40,71 +40,6 @@
     }
   </style>
 <script type="text/javascript" src="swfobject.js"></script>
-<script language="JavaScript" type="text/javascript">
-// Globals
-// Major version of Flash required
-var requiredMajorVersion = 9;
-// Minor version of Flash required
-var requiredMinorVersion = 0;
-// Minor version of Flash required
-var requiredRevision = 115;
-
-var browserLang = (navigator.language) ? navigator.language : navigator.userLanguage;
-var userLang = (browserLang.indexOf('en') == 0) ? 'en' : 'es';
-
-var english = {};
-english['description']  = 'Free Video Player for Cuevana. Optional offline database updater.';
-english['full_description']  = '<b>Freevana Player</b> works even when Cuevana\'s website is down.<br/>';
-english['full_description'] += 'The optional database grabber lets you keep an up-to-date version of Cuevana\'s database and their subtitles.'
-english['screenshot'] = '<img src="img/screenshot.png" width="701" height="412" alt="Freevana Player" border="0" />';
-
-english['instructions'] = 'Instructions';
-english['instructions_text']  = '<li>Install Freevana Player and download the database.</li>';
-english['instructions_text'] += '<li>Though, it\'s not 100% required, you should also download a copy of the subtitles so that movies and series work even if the subtitles page is down.</li>';
-english['instructions_text'] += '<li>Uncompress the database and subtitles.</li><li>Run Freevana Player, select the database and the subtitles folder. Done!</li>';
-
-english['install'] = 'Install v1.2.5';
-english['install_text'] = 'You can install Freevana Player directly from your web browser:';
-english['install_text2'] = 'Or, you can download the <b>.air</b> file and run it yourself, with Adobe AIR:';
-
-english['air_link'] = '<a href="http://www.adobe.com/products/air.html" target="_blank">Adobe AIR</a>';
-english['database'] = 'Database (2012/02/16)';
-english['subtitles'] = 'Subtitles';
-english['subtitles_text']  = 'For a better experience, it\'s recommended you download a copy of the subtitles to your computer. ';
-english['subtitles_text'] += 'If you don\'t have them, Freevana Player will still attempt to download the subtitles when you view a new Movie or Series, ';
-english['subtitles_text'] += 'but having a local copy it\'s the safest option.';
-
-english['subtitles_links'] = '<a href="http://www.sendspace.com/file/3uey4t" target="_blank" target="_blank">English only</a> 46MB\n';
-english['subtitles_links'] += '<a href="http://www.sendspace.com/file/gzna43" target="_blank">Spanish only</a> 293MB\n';
-english['subtitles_links'] += '<a href="http://www.sendspace.com/file/s7wpwe" target="_blank">Portuguese only</a> 2.0MB\n\n';
-english['subtitles_links'] += '<a href="http://www.filesonic.com/file/4048657464/subtitles-ALL-2011-11-30.zip" target="_blank">All Languages</a> 338MB';
-
-english['optional'] = 'Optional';
-english['author'] = 'Contact';
-
-function init() {
-	if (userLang == 'en') {
-		for (var key in english) {
-			var item = document.getElementById(key);
-			if (item) {
-				item.innerHTML = english[key];
-			}
-		}
-	}
-}
-</script>
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-27249633-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
 </head>
 <body onload="init();">
 
@@ -129,95 +64,12 @@ function init() {
 		<img src="img/screenshot2.jpg?new" width="702" height="412" alt="Freevana Player" border="0" />
 	</p>
 
-	<h2 id="instructions">Instrucciones</h2>
-	<p>
-		<ul id="instructions_text">
-			<li>Instalar Freevana Player y bajar la base de datos.</li>
-			<li>Aunque no es 100% necesario, es recomendable bajar una copia de los subtitulos para que todo funcione incluso cuando no anda la página de subtitulos.</li>
-			<li>Descomprima la base de datos y los subtítulos.</li>
-			<li>Ejecute Freevana Player, seleccione la base de datos y la carpeta de subtítulos. Listo!</li>
-		</ul>
-	</p>
-
-	<h2 id="install">Instalar v1.1</h2>
-	<p id="install_text">
-		Se puede instalar Freevana Player directo desde el navegador:
-	</p>
-	
-	<div id="flashcontent" style="width:215px; height:180px;">
-		<strong>Please upgrade your Flash Player</strong>
-		You need to install a new version of Adobe Flash.
-	</div>
-
-	<script type="text/javascript" defer="defer">
-		// <![CDATA[
-		// version 9.0.115 or greater is required for launching AIR apps.
-		var so = new SWFObject("AIRInstallBadge.swf", "Badge", "215", "180", "9.0.115", "#FFFFFF");
-
-		// these parameters are required for badge install:
-		so.addVariable("airversion", "2.6"); // version of AIR runtime required
-		so.addVariable("appname", "Freevana Player"); // application name to display to the user
-		so.addVariable("appurl", "http://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.2.5.air"); // absolute URL (beginning with http or https) of the application ".air" file
-
-		so.addVariable("appid", "freevana.freevanaPlayer"); // the qualified application ID (ex. com.gskinner.air.MyApplication)
-		so.addVariable("pubid", ""); // publisher id
-
-		// this parameter is required in addition to the above to support upgrading from the badge:
-		so.addVariable("appversion", "1.2.5"); // AIR application version
-
-		// these parameters are optional:
-		so.addVariable("image", "img/badge.png"); // URL for an image (JPG, PNG, GIF) or SWF to display in the badge (205px wide, 170px high)
-		so.addVariable("hidehelp", "false"); // hides the help icon if "true"
-		so.addVariable("skiptransition", "false"); // skips the initial transition if "true"
-		so.addVariable("titlecolor", "#00AAFF"); // changes the color of titles
-		so.addVariable("buttonlabelcolor", "#00AAFF"); // changes the color of the button label
-		so.addVariable("appnamecolor", "#00AAFF"); // changes the color of the application name if the image is not specified or loaded
-
-		so.addVariable("str_install", "Install Freevana"); // overrides the error text when the AIR proxy swf fails to load
-		so.write("flashcontent");
-		// ]]>
-	</script>
-
-	<p id="install_text2">
-		O, se puede descargar el archivo <b>.air</b> y ejecutarlo con Adobe AIR:
-	</p>
-	<p>
-		<pre><a href="https://github.com/downloads/tirino/freevana-player/FreevanaPlayer-v1.2.5.air">Freevana Player (v1.2.5)</a> 1.8MB (Windows, Linux, Mac)</pre>
-		<pre id="air_link"><a href="http://www.adobe.com/es/products/air.html" target="_blank">Adobe AIR</a></pre>
-	</p>
-
-	<h2 id="database">Base de Datos (2012/02/16)</h2>
-	<p>
-		<pre><a href="http://depositfiles.com/files/0za70cokk" target="_blank">Freevana Database</a> 649k (2012/02/16)</pre>
-	</p>
-
-	<h2 id="subtitles">Subtítulos</h2>
-	<p id="subtitles_text">
-		Para una mejor experiencia, es recomendable tener una copia local de los subtítulos.
-		De no ser así, Freevana Player intentará descargarlos cada vez que se reproduzca una nueva Película o Serie,
-		sin embargo, tener una copia local es la opción más segura.
-	</p>
-	<p>
-		<pre id="subtitles_links"><a href="http://www.sendspace.com/file/gzna43" target="_blank">Español solo</a> 293MB<a href="http://www.sendspace.com/file/3uey4t" target="_blank">Inglés solo</a> 46MB<a href="http://www.sendspace.com/file/s7wpwe" target="_blank">Portugués solo</a> 2.0MB
-<a href="http://www.filesonic.com/file/4048657464/subtitles-ALL-2011-11-30.zip" target="_blank">Todos los idiomas</a> 338MB</pre>
-	</p>
-
-    <h2>Changelog</h2>
-    <p>
-        <a href="CHANGELOG.txt">CHANGELOG.txt</a>
+    <h2 id="install">Descontinuado</h2>
+    <p id="install_text">
+        <big>
+            Debido al bloqueo por parte de Cuevana este proyecto se encuentra descontinuado.
+        </big>
     </p>
-
-    <p>&nbsp; <br />&nbsp; <br /></p>
-
-	<h2 id="optional">Opcional</h2>
-	<p>
-        Freevana Database Updater<br/>
-        <i>For advanced users only / Solo para usuarios avanzados</i>
-		(Python [mechanize, BeautifulSoup])<br/>
-		<br/>
-		<a href="https://github.com/tirino/freevana/zipball/master">zip</a> | 
-		<a href="https://github.com/tirino/freevana/tarball/master">tar</a>
-	</p>
 
 	<h2 id="author">Contacto</h2>
 	<p>
